@@ -22,8 +22,8 @@ typedef struct Actionneurs {
 	bool etatLedArmement;
 	bool enJeu;
 	uint16_t armementTirette;
-	uint16_t positionServo[NOMBRE_SERVOS];
-	uint16_t valeursPositionsServos[NOMBRE_SERVOS][NOMBRE_POSITIONS_SERVOS];
+	uint16_t angleServo[NOMBRE_SERVOS];
+	// uint16_t valeursPositionsServos[NOMBRE_SERVOS][NOMBRE_POSITIONS_SERVOS];
 	uint16_t positionAscenseur;
 	uint16_t valeursPositionsAscenseur[NOMBRE_POSITIONS_ASC];
 	GPIO_TypeDef * relayPorts[NOMBRE_RELAIS];
@@ -31,16 +31,15 @@ typedef struct Actionneurs {
 } Actionneurs;
 
 void initActionneurs();
-void setServoPosValue(uint16_t servoNum, uint16_t posNum, uint16_t val);
 void setAscPosValue(uint16_t posNum, uint16_t val);
 void PCA9685_ContinuousServoRun(uint8_t Channel);
 void PCA9685_ContinuousServoStop(uint8_t Channel);
 void PCA9685_LEDOn(uint8_t Channel);
 void PCA9685_LEDOff(uint8_t Channel);
-uint16_t getServoPos(uint16_t servoNum);
+float getServoAngle(uint16_t servoNum);
 uint16_t getRelayState(uint16_t relayNum);
 uint16_t getAscPos();
-void moveServo(uint16_t servoNum, uint16_t posNum);
+void moveServo(uint16_t servoNum, float angle);
 void moveRelay(uint16_t relayNum, uint16_t state);
 void moveAsc(uint16_t posNum);
 void armTirette();

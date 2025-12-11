@@ -182,10 +182,7 @@ void initActionneurs(){
 	act.armementTirette = 0;
 	act.enJeu = 0;
 	for(uint16_t servoId = 0; servoId < NOMBRE_SERVOS; servoId++){
-		act.positionServo[servoId] = 0;
-		for(uint16_t posId = 0; posId < NOMBRE_POSITIONS_SERVOS; posId++){
-			act.valeursPositionsServos[servoId][posId] = 0;
-		}
+		act.angleServo[servoId] = 0;
 	}
 	act.positionAscenseur = 0;
 	for(uint16_t posId = 0; posId < NOMBRE_POSITIONS_ASC; posId++){
@@ -199,16 +196,16 @@ void initActionneurs(){
 	act.relayPortsNumbers[2] = RELAY_3_PIN;
 }
 
-void setServoPosValue(uint16_t servoNum, uint16_t posNum, uint16_t val){
+/*void setServoPosValue(uint16_t servoNum, uint16_t posNum, uint16_t val){
 	act.valeursPositionsServos[servoNum][posNum] = val;
-}
+}*/
 
 void setAscPosValue(uint16_t posNum, uint16_t val){
 	act.valeursPositionsAscenseur[posNum] = val;
 }
 
-uint16_t getServoPos(uint16_t servoNum){
-	return act.positionServo[servoNum];
+float getServoAngle(uint16_t servoNum){
+	return act.angleServo[servoNum];
 }
 
 uint16_t getRelayState(uint16_t relayNum)
@@ -220,9 +217,9 @@ uint16_t getAscPos(){
 	return act.positionAscenseur;
 }
 
-void moveServo(uint16_t servoNum, uint16_t posNum){
-	PCA9685_SetServoAngle(servoNum, act.valeursPositionsServos[servoNum][posNum]);
-	act.positionServo[servoNum] = posNum;
+void moveServo(uint16_t servoNum, float angle){
+	PCA9685_SetServoAngle(servoNum, angle);
+	act.angleServo[servoNum] = angle;
 }
 
 void moveRelay(uint16_t relayNum, uint16_t state){

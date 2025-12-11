@@ -94,10 +94,10 @@ void USBProtocol_ProcessCommand(char *cmd) {
                     break;
                 }
                 int servoId = atoi(servoIdStr);
-                int pos = getServoPos(servoId);
+                float angle = getServoAngle(servoId);
 
                 /* append \";id;pos\" for each servo, check remaining buffer */
-                int wrote = snprintf(response + off, sizeof(response) - off, ";%d;%d", servoId, pos);
+                int wrote = snprintf(response + off, sizeof(response) - off, ";%d;%.4f", servoId, angle);
                 if (wrote < 0 || (size_t)wrote >= sizeof(response) - off) {
                     success = 0;
                     break;
@@ -176,43 +176,6 @@ void USBProtocol_ProcessCommand(char *cmd) {
             }
             sprintf(response, "%s;%s;%s;%d\n", success ? "OK" : "KO", arg1, arg2, val);
             CDC_Transmit_FS((uint8_t*)response, strlen(response));
-        } else if (strcmp(arg1, "SERVO") == 0 && strcmp(arg2, "POS") == 0){
-            int n = atoi(arg3);
-            size_t off = 0;
-            off += snprintf(response + off, sizeof(response) - off, "%s;%s;%s;%d", "OK", arg1, arg2, n);
-
-            for (int i = 0; i < n; ++i) {
-                char *servoIdStr = strtok(NULL, ";");
-                char *posStr = strtok(NULL, ";");
-                char *angleStr = strtok(NULL, ";");
-                if (!servoIdStr || !posStr || !angleStr) {
-                    success = 0;
-                    break;
-                }
-                int servoId = atoi(servoIdStr);
-                int pos = atoi(posStr);
-                int angle = atoi(angleStr);
-                setServoPosValue(servoId, pos, angle);
-
-                int wrote = snprintf(response + off, sizeof(response) - off, ";%d;%d", servoId, pos);
-                if (wrote < 0 || (size_t)wrote >= sizeof(response) - off) {
-                    success = 0;
-                    break;
-                }
-                off += wrote;
-            }
-
-            if (!success) {
-                snprintf(response, sizeof(response), "KO;%s;%s\n", arg1, arg2);
-            } else {
-                if (off < sizeof(response) - 1) {
-                    response[off++] = '\n';
-                    response[off] = '\0';
-                } else {
-                    response[sizeof(response) - 1] = '\0';
-                }
-            }
-            CDC_Transmit_FS((uint8_t*)response, strlen(response));
         }
     } else if (strcmp(type, "MOV") == 0) {
         int success = 1;
@@ -223,16 +186,16 @@ void USBProtocol_ProcessCommand(char *cmd) {
 
             for (int i = 0; i < n; ++i) {
                 char *servoIdStr = strtok(NULL, ";");
-                char *posStr = strtok(NULL, ";");
-                if (!servoIdStr || !posStr) {
+                char *angleStr = strtok(NULL, ";");
+                if (!servoIdStr || !angleStr) {
                     success = 0;
                     break;
                 }
                 int servoId = atoi(servoIdStr);
-                int pos = atoi(posStr);
-                moveServo(servoId, pos);
+                float angle = atof(angleStr);
+                moveServo(servoId, angle);
 
-                int wrote = snprintf(response + off, sizeof(response) - off, ";%d;%d", servoId, pos);
+                int wrote = snprintf(response + off, sizeof(response) - off, ";%d;%.4f", servoId, angle);
                 if (wrote < 0 || (size_t)wrote >= sizeof(response) - off) {
                     success = 0;
                     break;
