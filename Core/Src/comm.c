@@ -301,13 +301,44 @@ void USBProtocol_ProcessCommand(char *cmd) {
 }
 
 void USBProtocol_Receive(uint8_t* Buf, uint32_t Len) {
-    if (Len >= USB_RX_BUFFER_SIZE) return;
-    memcpy(usb_rx_buffer, Buf, Len);
-    usb_rx_buffer[Len] = '\0';
+    static size_t rx_len = 0;
+    if (Len == 0) return;
 
-    char *line = strtok((char*)usb_rx_buffer, "\n");
-    while (line != NULL) {
-        USBProtocol_ProcessCommand(line);
-        line = strtok(NULL, "\n");
+    if (Len + rx_len >= USB_RX_BUFFER_SIZE) {
+        rx_len = 0;
+        return;
     }
+
+    memcpy(usb_rx_buffer + rx_len, Buf, Len);
+    rx_len += Len;
+
+    size_t start = 0;
+    for (size_t i = 0; i < rx_len; ++i) {
+        if (usb_rx_buffer[i] == '\n') {
+            /* determine line length and null-terminate, trimming trailing \\r */
+            size_t line_len = (i > start) ? (i - start) : 0;
+            if (line_len > 0 && usb_rx_buffer[start + line_len - 1] == '\r') {
+                usb_rx_buffer[start + line_len - 1] = '\0';
+            } else {
+                usb_rx_buffer[start + line_len] = '\0';
+            }
+
+            char *line = &usb_rx_buffer[start];
+            if (line[0] != '\0') {
+                USBProtocol_ProcessCommand(line);
+            }
+
+            start = i + 1;
+        }
+    }
+
+    if (start == 0) {
+        return;
+    }
+
+    size_t remaining = rx_len - start;
+    if (remaining > 0) {
+        memmove(usb_rx_buffer, usb_rx_buffer + start, remaining);
+    }
+    rx_len = remaining;
 }
