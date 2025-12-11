@@ -211,6 +211,11 @@ uint16_t getServoPos(uint16_t servoNum){
 	return act.positionServo[servoNum];
 }
 
+uint16_t getRelayState(uint16_t relayNum)
+{
+	return HAL_GPIO_ReadPin(act.relayPorts[relayNum-1], act.relayPortsNumbers[relayNum-1]);
+}
+
 uint16_t getAscPos(){
 	return act.positionAscenseur;
 }

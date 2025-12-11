@@ -38,6 +38,7 @@ void PCA9685_ContinuousServoStop(uint8_t Channel);
 void PCA9685_LEDOn(uint8_t Channel);
 void PCA9685_LEDOff(uint8_t Channel);
 uint16_t getServoPos(uint16_t servoNum);
+uint16_t getRelayState(uint16_t relayNum);
 uint16_t getAscPos();
 void moveServo(uint16_t servoNum, uint16_t posNum);
 void moveRelay(uint16_t relayNum, uint16_t state);
