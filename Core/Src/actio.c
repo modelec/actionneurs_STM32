@@ -76,7 +76,7 @@ void PCA9685_SetServoAngle(uint8_t Channel, float Angle)
   // 50 Hz servo then 4095 Value --> 20 milliseconds
   // Centieme de radians
   // 0 rad --> 0.5 ms(102.4 Value) and 2 PI radians --> 2.5 ms(511.9 Value)
-  Value = (Angle * (511.9 - 102.4) / (100 * 3.141592)) + 102.4;
+  Value = (Angle * (511.9 - 102.4) / (/*100 **/ 3.141592)) + 102.4;
   PCA9685_SetPWM(Channel, 0, (uint16_t)Value);
 }
 

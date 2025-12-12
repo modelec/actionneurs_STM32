@@ -65,12 +65,12 @@ void USBProtocol_ProcessCommand(char *cmd) {
     char *type = strtok(cmd, ";");
     char *arg1 = strtok(NULL, ";");
     char *arg2 = strtok(NULL, ";");
-    char *arg3 = strtok(NULL, ";");
 
     if (!type || !arg1 || !arg2) return;
 
     if (strcmp(type, "GET") == 0) {
         if (strcmp(arg1, "SERVO") == 0 && strcmp(arg2, "POS") == 0) {
+            char *arg3 = strtok(NULL, ";");
             if (!arg3) {
                 snprintf(response, sizeof(response), "KO;SET;%s;%s\n", arg1, arg2);
                 CDC_Transmit_FS((uint8_t*)response, strlen(response));
@@ -119,6 +119,7 @@ void USBProtocol_ProcessCommand(char *cmd) {
             }
             CDC_Transmit_FS((uint8_t*)response, strlen(response));
         } else if (strcmp(arg1, "RELAY") == 0 && strcmp(arg2, "STATE") == 0) {
+            char *arg3 = strtok(NULL, ";");
             if (!arg3) {
                 snprintf(response, sizeof(response), "KO;SET;%s;%s\n", arg1, arg2);
                 CDC_Transmit_FS((uint8_t*)response, strlen(response));
@@ -165,8 +166,15 @@ void USBProtocol_ProcessCommand(char *cmd) {
             CDC_Transmit_FS((uint8_t*)response, strlen(response));
         }
 
-    } else if (strcmp(type, "SET") == 0 && arg3) {
+    } else if (strcmp(type, "SET") == 0) {
         int success = 1;
+        char *arg3 = strtok(NULL, ";");
+        if (!arg3)
+        {
+            snprintf(response, sizeof(response), "KO;SET;%s;%s\n", arg1, arg2);
+            CDC_Transmit_FS((uint8_t*)response, strlen(response));
+            return;
+        }
         if (strcmp(arg1, "TIR") == 0 && strcmp(arg2, "ARM") == 0) {
             int val = atoi(arg3);
             if(val){
@@ -182,7 +190,7 @@ void USBProtocol_ProcessCommand(char *cmd) {
         if (strcmp(arg1, "SERVO") == 0) {
             int n = atoi(arg2);
             size_t off = 0;
-            off += snprintf(response + off, sizeof(response) - off, "%s;%s;%s;%d", "OK", arg1, arg2, n);
+            off += snprintf(response + off, sizeof(response) - off, "%s;%s;%d", "OK", arg1, n);
 
             for (int i = 0; i < n; ++i) {
                 char *servoIdStr = strtok(NULL, ";");
@@ -195,7 +203,7 @@ void USBProtocol_ProcessCommand(char *cmd) {
                 float angle = atof(angleStr);
                 moveServo(servoId, angle);
 
-                int wrote = snprintf(response + off, sizeof(response) - off, ";%d;%.4f", servoId, angle);
+                int wrote = snprintf(response + off, sizeof(response) - off, ";%s;%s", servoIdStr, angleStr);
                 if (wrote < 0 || (size_t)wrote >= sizeof(response) - off) {
                     success = 0;
                     break;
@@ -264,44 +272,13 @@ void USBProtocol_ProcessCommand(char *cmd) {
 }
 
 void USBProtocol_Receive(uint8_t* Buf, uint32_t Len) {
-    static size_t rx_len = 0;
-    if (Len == 0) return;
+    if (Len >= USB_RX_BUFFER_SIZE) return;
+    memcpy(usb_rx_buffer, Buf, Len);
+    usb_rx_buffer[Len] = '\0';
 
-    if (Len + rx_len >= USB_RX_BUFFER_SIZE) {
-        rx_len = 0;
-        return;
+    char *line = strtok((char*)usb_rx_buffer, "\n");
+    while (line != NULL) {
+        USBProtocol_ProcessCommand(line);
+        line = strtok(NULL, "\n");
     }
-
-    memcpy(usb_rx_buffer + rx_len, Buf, Len);
-    rx_len += Len;
-
-    size_t start = 0;
-    for (size_t i = 0; i < rx_len; ++i) {
-        if (usb_rx_buffer[i] == '\n') {
-            /* determine line length and null-terminate, trimming trailing \\r */
-            size_t line_len = (i > start) ? (i - start) : 0;
-            if (line_len > 0 && usb_rx_buffer[start + line_len - 1] == '\r') {
-                usb_rx_buffer[start + line_len - 1] = '\0';
-            } else {
-                usb_rx_buffer[start + line_len] = '\0';
-            }
-
-            char *line = &usb_rx_buffer[start];
-            if (line[0] != '\0') {
-                USBProtocol_ProcessCommand(line);
-            }
-
-            start = i + 1;
-        }
-    }
-
-    if (start == 0) {
-        return;
-    }
-
-    size_t remaining = rx_len - start;
-    if (remaining > 0) {
-        memmove(usb_rx_buffer, usb_rx_buffer + start, remaining);
-    }
-    rx_len = remaining;
 }
