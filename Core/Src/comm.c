@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define USB_RX_BUFFER_SIZE 128
+#define USB_RX_BUFFER_SIZE 256
 static char usb_rx_buffer[USB_RX_BUFFER_SIZE];
 
 // ==================== Événements en attente d'ACK ====================
@@ -164,8 +164,10 @@ void USBProtocol_ProcessCommand(char *cmd) {
                 }
             }
             CDC_Transmit_FS((uint8_t*)response, strlen(response));
+        } else {
+            snprintf(response, sizeof(response), "KO;SET;%s;%s\n", arg1, arg2);
+            CDC_Transmit_FS((uint8_t*)response, strlen(response));
         }
-
     } else if (strcmp(type, "SET") == 0) {
         int success = 1;
         char *arg3 = strtok(NULL, ";");
@@ -183,6 +185,9 @@ void USBProtocol_ProcessCommand(char *cmd) {
                disarmTirette();
             }
             sprintf(response, "%s;%s;%s;%d\n", success ? "OK" : "KO", arg1, arg2, val);
+            CDC_Transmit_FS((uint8_t*)response, strlen(response));
+        } else {
+            snprintf(response, sizeof(response), "KO;SET;%s;%s\n", arg1, arg2);
             CDC_Transmit_FS((uint8_t*)response, strlen(response));
         }
     } else if (strcmp(type, "MOV") == 0) {
@@ -257,6 +262,10 @@ void USBProtocol_ProcessCommand(char *cmd) {
                 }
             }
             CDC_Transmit_FS((uint8_t*)response, strlen(response));
+        } else
+        {
+            snprintf(response, sizeof(response), "KO;MOV;%s;%s\n", arg1, arg2);
+            CDC_Transmit_FS((uint8_t*)response, strlen(response));
         }
     } else if (strcmp(type, "ACK") == 0) {
         // Réception d'un ACK d'évènement
@@ -268,6 +277,9 @@ void USBProtocol_ProcessCommand(char *cmd) {
                 break;
             }
         }
+    } else {
+        snprintf(response, sizeof(response), "KO;UNKNOWN_COMMAND\n");
+        CDC_Transmit_FS((uint8_t*)response, strlen(response));
     }
 }
 
