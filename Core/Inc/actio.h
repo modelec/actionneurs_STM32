@@ -5,7 +5,6 @@
 #include <stdbool.h>
 
 #define NOMBRE_SERVOS				16
-#define NOMBRE_POSITIONS_SERVOS		8
 #define NOMBRE_POSITIONS_ASC		8
 #define NOMBRE_RELAIS				3
 
@@ -23,7 +22,6 @@ typedef struct Actionneurs {
 	bool enJeu;
 	uint16_t armementTirette;
 	uint16_t angleServo[NOMBRE_SERVOS];
-	// uint16_t valeursPositionsServos[NOMBRE_SERVOS][NOMBRE_POSITIONS_SERVOS];
 	uint16_t positionAscenseur;
 	uint16_t valeursPositionsAscenseur[NOMBRE_POSITIONS_ASC];
 	GPIO_TypeDef * relayPorts[NOMBRE_RELAIS];
