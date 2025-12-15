@@ -5,18 +5,6 @@
 
 #include <math.h>
 
-
-/* ######################## PARTIE PCA9685 SERVO ########################### */
-
-#define PCA9685_COUNT                 2       // number of boards
-#define PCA9685_BASE_ADDR             0x40    // A0=A1=A2=0
-#define PCA9685_SERVOS_PER_BOARD      16
-#define PCA9685_TOTAL_SERVOS          (PCA9685_COUNT * PCA9685_SERVOS_PER_BOARD)
-
-#define PCA9685_PWM_FREQ              50      // Hz
-#define SERVO_MIN_PULSE               102     // 0.5 ms
-#define SERVO_MAX_PULSE               512     // 2.5 ms
-
 // Datasheet link --> https://cdn-shop.adafruit.com/datasheets/PCA9685.pdf
 #define PCA9685_MODE1         0x0         // as in the datasheet page no 10/52
 #define PCA9685_PRE_SCALE     0xFE        // as in the datasheet page no 13/52
@@ -228,7 +216,7 @@ void initActionneurs(){
 	act.etatLedArmement = 0;
 	act.armementTirette = 0;
 	act.enJeu = 0;
-	for(uint16_t servoId = 0; servoId < NOMBRE_SERVOS; servoId++){
+	for(uint16_t servoId = 0; servoId < PCA9685_TOTAL_SERVOS; servoId++){
 		act.angleServo[servoId] = 0;
 	}
 	act.positionAscenseur = 0;
