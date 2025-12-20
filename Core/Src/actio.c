@@ -51,10 +51,10 @@ void PCA9685_SetPWMFrequency(uint8_t Address, uint16_t frequency)
   if(frequency >= 1526) prescale = 0x03;
   else if(frequency <= 24) prescale = 0xFF;
   //  internal 25 MHz oscillator as in the datasheet page no 1/52
-  else prescale = 25000000 / (4096 * frequency);
+  else prescale = (uint8_t)(25000000 / (4096 * frequency)) - 1;
   // prescale changes 3 to 255 for 1526Hz to 24Hz as in the datasheet page no 1/52
   PCA9685_SetBit(Address, PCA9685_MODE1, PCA9685_MODE1_SLEEP_BIT, 1);
-  HAL_I2C_Mem_Write(&hi2c1, Address, PCA9685_PRE_SCALE, 1, &prescale, 1, 10);
+  HAL_I2C_Mem_Write(&hi2c1, Address << 1, PCA9685_PRE_SCALE, 1, &prescale, 1, 10);
   PCA9685_SetBit(Address, PCA9685_MODE1, PCA9685_MODE1_SLEEP_BIT, 0);
   PCA9685_SetBit(Address, PCA9685_MODE1, PCA9685_MODE1_RESTART_BIT, 1);
 }

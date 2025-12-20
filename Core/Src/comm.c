@@ -7,6 +7,7 @@
 
 #define USB_RX_BUFFER_SIZE 256
 static char usb_rx_buffer[USB_RX_BUFFER_SIZE];
+static uint16_t usb_rx_len = 0;
 
 // ==================== Événements en attente d'ACK ====================
 
@@ -283,7 +284,7 @@ void USBProtocol_ProcessCommand(char *cmd) {
     }
 }
 
-void USBProtocol_Receive(uint8_t* Buf, uint32_t Len) {
+/*void USBProtocol_Receive(uint8_t* Buf, uint32_t Len) {
     if (Len >= USB_RX_BUFFER_SIZE) return;
     memcpy(usb_rx_buffer, Buf, Len);
     usb_rx_buffer[Len] = '\0';
@@ -293,4 +294,32 @@ void USBProtocol_Receive(uint8_t* Buf, uint32_t Len) {
         USBProtocol_ProcessCommand(line);
         line = strtok(NULL, "\n");
     }
+}*/
+
+void USBProtocol_Receive(uint8_t* Buf, uint32_t Len)
+{
+    if (Len == 0) return;
+
+    /* overflow protection */
+    if (usb_rx_len + Len >= USB_RX_BUFFER_SIZE) {
+        usb_rx_len = 0; // drop frame safely
+        return;
+    }
+
+    memcpy(&usb_rx_buffer[usb_rx_len], Buf, Len);
+    usb_rx_len += Len;
+    usb_rx_buffer[usb_rx_len] = '\0';
+
+    char *start = usb_rx_buffer;
+    char *nl;
+
+    while ((nl = strchr(start, '\n')) != NULL) {
+        *nl = '\0';
+        USBProtocol_ProcessCommand(start);
+        start = nl + 1;
+    }
+
+    /* keep remaining partial command */
+    usb_rx_len = strlen(start);
+    memmove(usb_rx_buffer, start, usb_rx_len);
 }
