@@ -4,8 +4,17 @@
 #include "stm32g4xx_hal.h"
 #include <stdbool.h>
 
-#define NOMBRE_SERVOS				16
-#define NOMBRE_POSITIONS_SERVOS		8
+/* ######################## PARTIE PCA9685 SERVO ########################### */
+
+#define PCA9685_COUNT                 2       // number of boards
+#define PCA9685_BASE_ADDR             0x40    // A0=A1=A2=0
+#define PCA9685_SERVOS_PER_BOARD      16
+#define PCA9685_TOTAL_SERVOS          (PCA9685_COUNT * PCA9685_SERVOS_PER_BOARD)
+
+#define PCA9685_PWM_FREQ              50      // Hz
+#define SERVO_MIN_PULSE               102     // 0.5 ms
+#define SERVO_MAX_PULSE               512     // 2.5 ms
+
 #define NOMBRE_POSITIONS_ASC		8
 #define NOMBRE_RELAIS				3
 
@@ -22,8 +31,7 @@ typedef struct Actionneurs {
 	bool etatLedArmement;
 	bool enJeu;
 	uint16_t armementTirette;
-	uint16_t angleServo[NOMBRE_SERVOS];
-	// uint16_t valeursPositionsServos[NOMBRE_SERVOS][NOMBRE_POSITIONS_SERVOS];
+	uint16_t angleServo[PCA9685_TOTAL_SERVOS];
 	uint16_t positionAscenseur;
 	uint16_t valeursPositionsAscenseur[NOMBRE_POSITIONS_ASC];
 	GPIO_TypeDef * relayPorts[NOMBRE_RELAIS];
